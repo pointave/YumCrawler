@@ -467,13 +467,14 @@ def process_all_stores(max_stores=None):
     """
     # Create Menu folder if it doesn't exist
     os.makedirs("Menu", exist_ok=True)
-    
-    # Get all county JSON files from Data folder
+      # Get all county JSON files from Data folder
     data_folder = "Data"
-    county_files = [f for f in os.listdir(data_folder) if f.endswith("_counties.json")]
+    # Only process Florida counties
+    county_files = ["fl_counties.json"]
     
-    if not county_files:
-        print("No county files found in Data folder. Please run tacobellcrawl.py first.")
+    # Check if Florida county file exists
+    if not os.path.exists(os.path.join(data_folder, "fl_counties.json")):
+        print("Florida county file (fl_counties.json) not found in Data folder.")
         return
     
     print(f"Found {len(county_files)} county files to process...")
