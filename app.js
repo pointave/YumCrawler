@@ -13,6 +13,10 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
     maxZoom: 18
 }).addTo(map);
 
+// Global variables for layers
+let priceHeatLayer = null;
+let povertyLayer = null;
+
 // Function to interpolate color based on price
 function getColorForPrice(price, minPrice, maxPrice) {
     // Handle edge case where all prices are the same
@@ -146,8 +150,7 @@ async function loadFloridaHeatmap() {
         });
         
         console.log(`Total heatmap points: ${heatmapPoints.length}`);
-        console.log('Sample points:', heatmapPoints.slice(0, 3));
-          // Add heatmap layer with blue to red gradient
+        console.log('Sample points:', heatmapPoints.slice(0, 3));        // Add heatmap layer with blue to red gradient
         const heatLayer = L.heatLayer(heatmapPoints, {
             radius: 30,
             blur: 40,
@@ -163,6 +166,7 @@ async function loadFloridaHeatmap() {
             }
         });
         
+        priceHeatLayer = heatLayer; // Store in global variable
         heatLayer.addTo(map);
         console.log('Heatmap layer added to map');
         
@@ -194,3 +198,122 @@ async function loadFloridaHeatmap() {
 
 // Load the heatmap
 loadFloridaHeatmap();
+
+// Load and display poverty data by county
+async function loadPovertyLayer() {
+    console.log('Loading poverty data...');
+    
+    try {
+        // Load poverty data
+        const povertyResponse = await fetch('Data/florida_poverty.json');
+        const povertyData = await povertyResponse.json();
+        
+        console.log(`Loaded poverty data for ${povertyData.length} counties`);
+        
+        // Create a map for quick lookup
+        const povertyMap = {};
+        povertyData.forEach(county => {
+            povertyMap[county.county.toLowerCase()] = county.poverty_rate;
+        });
+        
+        // Find min and max poverty rates
+        const rates = povertyData.map(d => d.poverty_rate);
+        const minRate = Math.min(...rates);
+        const maxRate = Math.max(...rates);
+        console.log(`Poverty rate range: ${minRate.toFixed(1)}% - ${maxRate.toFixed(1)}%`);
+        
+        // Load Florida county GeoJSON from publicly available source
+        const geoResponse = await fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json');
+        const allCounties = await geoResponse.json();
+        
+        // Filter for Florida counties (FIPS codes starting with 12)
+        const floridaCounties = {
+            type: "FeatureCollection",
+            features: allCounties.features.filter(f => f.id && f.id.startsWith('12'))
+        };
+        
+        console.log(`Loaded ${floridaCounties.features.length} Florida county boundaries`);
+        
+        // Function to get color based on poverty rate
+        function getPovertyColor(rate) {
+            if (!rate) return 'rgba(128, 128, 128, 0.3)'; // Grey for missing data
+            
+            // Normalize to 0-1
+            const normalized = (rate - minRate) / (maxRate - minRate);
+            
+            // Light green (low poverty) to dark red (high poverty)
+            let r, g, b;
+            if (normalized < 0.5) {
+                // Light green to yellow
+                const t = normalized * 2;
+                r = Math.round(200 + (55 * t));
+                g = Math.round(255);
+                b = Math.round(200 * (1 - t));
+            } else {
+                // Yellow to red
+                const t = (normalized - 0.5) * 2;
+                r = 255;
+                g = Math.round(255 * (1 - t));
+                b = 0;
+            }
+            
+            return `rgba(${r}, ${g}, ${b}, 0.4)`; // Semi-transparent
+        }
+        
+        // Style function for counties
+        function styleCounty(feature) {
+            // Extract county name from properties
+            const countyName = feature.properties?.NAME?.toLowerCase();
+            const rate = povertyMap[countyName];
+            
+            return {
+                fillColor: getPovertyColor(rate),
+                weight: 1,
+                opacity: 1,
+                color: 'white',
+                fillOpacity: 0.5
+            };
+        }
+        
+        // Add county layer
+        povertyLayer = L.geoJSON(floridaCounties, {
+            style: styleCounty,
+            onEachFeature: function(feature, layer) {
+                const countyName = feature.properties?.NAME;
+                const rate = povertyMap[countyName?.toLowerCase()];
+                
+                if (countyName && rate) {
+                    layer.bindPopup(`
+                        <strong>${countyName} County</strong><br>
+                        Poverty Rate: ${rate.toFixed(1)}%
+                    `);
+                }
+            }
+        }).addTo(map);
+        
+        console.log('Poverty layer added');
+        
+    } catch (error) {
+        console.error('Error loading poverty data:', error);
+    }
+}
+
+// Load poverty layer
+loadPovertyLayer();
+
+// Layer toggle controls
+document.getElementById('priceLayerToggle').addEventListener('change', function(e) {
+    if (e.target.checked && priceHeatLayer) {
+        map.addLayer(priceHeatLayer);
+    } else if (priceHeatLayer) {
+        map.removeLayer(priceHeatLayer);
+    }
+});
+
+document.getElementById('povertyLayerToggle').addEventListener('change', function(e) {
+    if (e.target.checked && povertyLayer) {
+        map.addLayer(povertyLayer);
+    } else if (povertyLayer) {
+        map.removeLayer(povertyLayer);
+    }
+});
