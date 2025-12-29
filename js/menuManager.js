@@ -278,24 +278,39 @@ class MenuManager {
         
         pricingContainer.style.display = 'block';
         
-        // Calculate total prices per location
+        // First, calculate average price for each item across all stores
+        const itemAveragePrices = {};
+        orderItems.forEach(([itemName]) => {
+            const prices = [];
+            this.menuData.data.forEach(storeData => {
+                if (storeData.prices[itemName] !== undefined) {
+                    prices.push(storeData.prices[itemName]);
+                }
+            });
+            
+            if (prices.length > 0) {
+                itemAveragePrices[itemName] = prices.reduce((a, b) => a + b, 0) / prices.length;
+            } else {
+                itemAveragePrices[itemName] = 0; // Fallback if no stores have this item
+            }
+        });
+        
+        // Calculate total prices per location, using average price if item is missing
         const locationPrices = {};
         
         this.menuData.data.forEach(storeData => {
             let totalPrice = 0;
-            let hasAllItems = true;
             
             orderItems.forEach(([itemName, quantity]) => {
                 if (storeData.prices[itemName] !== undefined) {
                     totalPrice += storeData.prices[itemName] * quantity;
                 } else {
-                    hasAllItems = false;
+                    // Use average price if item is not available at this store
+                    totalPrice += itemAveragePrices[itemName] * quantity;
                 }
             });
             
-            if (hasAllItems) {
-                locationPrices[storeData.storeId] = totalPrice;
-            }
+            locationPrices[storeData.storeId] = totalPrice;
         });
         
         const prices = Object.values(locationPrices);
