@@ -5,6 +5,7 @@ import json
 import re
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 def load_first_location():
     """Load the first store from locations.csv"""
@@ -88,14 +89,12 @@ def fetch_menu_page(store_id):
     }
     
     url = f"https://www.tacobell.com/food?store={store_id}"
-    print(f"Fetching menu from: {url}")
     
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return response.text
     except Exception as e:
-        print(f"Error fetching page: {e}")
         return None
 
 def parse_categories(html_content, store_id):
@@ -136,7 +135,6 @@ def parse_categories(html_content, store_id):
         return categories
         
     except Exception as e:
-        print(f"Error parsing category data: {e}")
         return None
 
 def display_categories(categories):
@@ -218,15 +216,10 @@ def fetch_all_categories_parallel(categories, max_workers=5):
             result = future.result()
             results.append(result)
     
-    # Count successes and failures
-    successful = sum(1 for r in results if r['success'])
-    failed = len(results) - successful
-    print(f"  Fetched {successful}/{len(results)} categories")
-    
     return results
 
-def parse_menu_items(html_content):
-    """Parse menu items and prices from HTML content"""
+def parse_menu_items(html_content, category_name=''):
+    """Parse menu items, prices, and image URLs from HTML content"""
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
         next_data_script = soup.find('script', {'id': '__NEXT_DATA__'})
@@ -245,18 +238,38 @@ def parse_menu_items(html_content):
             # Price is in the price object
             price_obj = product.get('price', {})
             
+            # Image URL - try different possible locations
+            image_url = None
+            if 'image' in product:
+                if isinstance(product['image'], dict):
+                    image_url = product['image'].get('url') or product['image'].get('src')
+                elif isinstance(product['image'], str):
+                    image_url = product['image']
+            
+            # Also try 'imageUrl' or 'images' fields
+            if not image_url:
+                image_url = product.get('imageUrl') or product.get('img')
+                if not image_url and 'images' in product:
+                    images = product['images']
+                    if isinstance(images, list) and len(images) > 0:
+                        if isinstance(images[0], dict):
+                            image_url = images[0].get('url') or images[0].get('src')
+                        else:
+                            image_url = images[0]
+            
             if name and price_obj and isinstance(price_obj, dict):
                 price = price_obj.get('value')
                 if price is not None:
                     menu_items.append({
                         'name': name,
-                        'price': float(price)
+                        'price': float(price),
+                        'image_url': image_url,
+                        'category': category_name
                     })
         
         return menu_items
         
     except Exception as e:
-        print(f"Error parsing menu items: {e}")
         return []
 
 def parse_all_menu_items_parallel(category_results):
@@ -267,7 +280,8 @@ def parse_all_menu_items_parallel(category_results):
         if not result['success'] or not result['html']:
             return []
         
-        items = parse_menu_items(result['html'])
+        category_name = result['category'].get('name', '')
+        items = parse_menu_items(result['html'], category_name)
         return items
     
     # Parse all results in parallel
@@ -276,15 +290,111 @@ def parse_all_menu_items_parallel(category_results):
         
         for future in as_completed(futures):
             items = future.result()
-            # Add items to dictionary (item name -> price)
+            # Add items to dictionary (item name -> {price, image_url, category})
             for item in items:
-                # If item already exists, keep the first price we found
+                # If item already exists, keep the first one we found
                 if item['name'] not in all_items:
-                    all_items[item['name']] = item['price']
+                    all_items[item['name']] = {
+                        'price': item['price'],
+                        'image_url': item.get('image_url'),
+                        'category': item.get('category', '')
+                    }
     
-    print(f"  Parsed {len(all_items)} unique menu items")
-    
+
     return all_items
+
+def download_image(url, filepath):
+    """Download an image from a URL and save it to filepath"""
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        with open(filepath, 'wb') as f:
+            f.write(response.content)
+        
+        return True
+    except Exception as e:
+        return False
+
+def sanitize_filename(name):
+    """Sanitize a string to be used as a filename"""
+    # Remove or replace invalid characters
+    invalid_chars = '<>:"/\\|?*'
+    for char in invalid_chars:
+        name = name.replace(char, '_')
+    
+    # Remove leading/trailing spaces and periods
+    name = name.strip('. ')
+    
+    # Limit length
+    if len(name) > 200:
+        name = name[:200]
+    
+    return name
+
+def save_menu_item_images(menu_items):
+    """Download and save images for all menu items"""
+    # Create images directory structure
+    images_dir = 'images'
+    os.makedirs(images_dir, exist_ok=True)
+    
+    # Track statistics
+    downloaded = 0
+    skipped = 0
+    failed = 0
+    
+    def download_task(item_name, item_data):
+        nonlocal downloaded, skipped, failed
+        
+        image_url = item_data.get('image_url')
+        category = item_data.get('category', 'uncategorized')
+        
+        if not image_url:
+            skipped += 1
+            return False
+        
+        # Create category folder
+        category_dir = os.path.join(images_dir, sanitize_filename(category))
+        os.makedirs(category_dir, exist_ok=True)
+        
+        # Determine file extension from URL
+        ext = '.jpg'  # default
+        if '.' in image_url:
+            url_ext = image_url.split('.')[-1].split('?')[0].lower()
+            if url_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                ext = '.' + url_ext
+        
+        # Create filename from item name
+        filename = sanitize_filename(item_name) + ext
+        filepath = os.path.join(category_dir, filename)
+        
+        # Skip if already exists
+        if os.path.exists(filepath):
+            skipped += 1
+            return True
+        
+        # Download the image
+        if download_image(image_url, filepath):
+            downloaded += 1
+            return True
+        else:
+            failed += 1
+            return False
+    
+    # Download images in parallel
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(download_task, item_name, item_data)
+            for item_name, item_data in menu_items.items()
+        ]
+        
+        for future in as_completed(futures):
+            future.result()
+    
+    return downloaded, skipped, failed
 
 def write_menu_csv(store_id, menu_items):
     """Write menu items to CSV file"""
@@ -364,7 +474,6 @@ def fetch_and_parse_store(location):
         }
         
     except Exception as e:
-        print(f"✗ Error fetching store {store_id}: {e}")
         return {
             'store_id': store_id,
             'location': location_name,
@@ -376,7 +485,6 @@ def process_batch_fully_parallel(batch):
     all_store_categories = {}
     
     # Step 1: Fetch main menu pages for all stores in parallel
-    print("  Fetching main menu pages...")
     with ThreadPoolExecutor(max_workers=len(batch)) as executor:
         future_to_store = {
             executor.submit(fetch_and_parse_store, location): location
@@ -398,11 +506,9 @@ def process_batch_fully_parallel(batch):
                 'category': category
             })
     
-    print(f"  Fetching {len(all_category_tasks)} category pages across {len(batch)} stores in parallel...")
-    
     # Step 3: Fetch ALL category pages in parallel (across all stores)
     category_results = {}
-    with ThreadPoolExecutor(max_workers=20) as executor:  # Increased workers for all categories
+    with ThreadPoolExecutor(max_workers=20) as executor:
         future_to_task = {
             executor.submit(fetch_category_page, task['category']): task
             for task in all_category_tasks
@@ -418,11 +524,17 @@ def process_batch_fully_parallel(batch):
             category_results[store_id].append(result)
     
     # Step 4: Parse menu items for each store
-    print(f"  Parsing menu items...")
     batch_results = []
+    all_batch_items = {}
+    
     for store_id, store_data in all_store_categories.items():
         store_category_results = category_results.get(store_id, [])
         menu_items = parse_all_menu_items_parallel(store_category_results)
+        
+        # Collect all unique items from this batch for image downloading
+        for item_name, item_data in menu_items.items():
+            if item_name not in all_batch_items and item_data.get('image_url'):
+                all_batch_items[item_name] = item_data
         
         batch_results.append({
             'store_id': store_id,
@@ -430,8 +542,10 @@ def process_batch_fully_parallel(batch):
             'menu_items': menu_items,
             'success': True
         })
-        
-        print(f"    ✓ {store_id}: {len(menu_items)} unique items")
+    
+    # Download images for all unique items in this batch
+    if all_batch_items:
+        save_menu_item_images(all_batch_items)
     
     return batch_results
 
@@ -495,37 +609,30 @@ def process_single_store(location):
 
 def process_stores_in_batches(locations, batch_size=5):
     """Process all stores in batches, saving after each batch"""
-    print("\n" + "="*80)
-    print(f"PROCESSING {len(locations)} STORES IN BATCHES OF {batch_size}")
-    print("="*80 + "\n")
-    
     # Load existing data
     existing_rows, existing_items = load_existing_menu_data()
     current_menu_items = existing_items
     
-    # Process stores in batches
-    for i in range(0, len(locations), batch_size):
-        batch = locations[i:i+batch_size]
-        batch_num = (i // batch_size) + 1
-        total_batches = (len(locations) + batch_size - 1) // batch_size
-        
-        print(f"\n{'='*80}")
-        print(f"BATCH {batch_num}/{total_batches} - Processing {len(batch)} stores")
-        print(f"{'='*80}")
-        
-        # Process batch with fully parallelized category fetching
-        batch_results = process_batch_fully_parallel(batch)
-        
-        print(f"\n✓ Completed batch {batch_num}/{total_batches}")
-        
-        # Save CSV after each batch
-        print(f"\n💾 Saving progress after batch {batch_num}...")
-        current_menu_items = write_comprehensive_menu_csv(batch_results, existing_rows, current_menu_items)
-        
-        # Update existing_rows to include the batch we just processed
-        if current_menu_items:
-            # Reload the CSV to get updated existing_rows
-            existing_rows, current_menu_items = load_existing_menu_data()
+    # Calculate total batches
+    total_batches = (len(locations) + batch_size - 1) // batch_size
+    
+    # Process stores in batches with main progress bar
+    with tqdm(total=total_batches, desc="Processing batches", unit="batch") as pbar:
+        for i in range(0, len(locations), batch_size):
+            batch = locations[i:i+batch_size]
+            
+            # Process batch with fully parallelized category fetching
+            batch_results = process_batch_fully_parallel(batch)
+            
+            # Save CSV after each batch
+            current_menu_items = write_comprehensive_menu_csv(batch_results, existing_rows, current_menu_items)
+            
+            # Update existing_rows to include the batch we just processed
+            if current_menu_items:
+                # Reload the CSV to get updated existing_rows
+                existing_rows, current_menu_items = load_existing_menu_data()
+            
+            pbar.update(1)
 
 def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_items=None):
     """Write comprehensive CSV with all stores and all menu items"""
@@ -538,23 +645,17 @@ def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_ite
     
     csv_path = 'data/menu.csv'
     
-    print("\n" + "="*80)
-    print("UPDATING COMPREHENSIVE MENU CSV")
-    print("="*80)
-    
     # Start with existing menu items if any
     all_menu_items = set(existing_items) if existing_items else set()
     
     # Add new menu items from current batch
     for result in store_results:
         if result['success']:
+            # menu_items is now a dict of {name: {price, image_url, category}}
             all_menu_items.update(result['menu_items'].keys())
     
     # Sort menu items alphabetically for consistent ordering
     sorted_menu_items = sorted(all_menu_items)
-    
-    print(f"Total unique menu items: {len(sorted_menu_items)}")
-    print(f"New stores in this batch: {len(store_results)}")
     
     # Prepare headers
     headers = ['store_id'] + sorted_menu_items
@@ -580,16 +681,16 @@ def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_ite
             # Build row with prices or empty string for missing items
             row = [result['store_id']]
             for item_name in sorted_menu_items:
-                price = result['menu_items'].get(item_name)
+                item_data = result['menu_items'].get(item_name)
+                # Extract price from nested dictionary
+                if item_data:
+                    price = item_data.get('price') if isinstance(item_data, dict) else item_data
+                else:
+                    price = None
                 row.append(price if price is not None else '')
             rows.append(row)
         else:
             failed_stores += 1
-            print(f"  Skipping failed store: {result['store_id']}")
-    
-    print(f"Successfully processed stores in batch: {successful_stores}")
-    print(f"Failed stores in batch: {failed_stores}")
-    print(f"Total stores in CSV: {len(rows)}")
     
     try:
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
@@ -597,17 +698,9 @@ def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_ite
             writer.writerow(headers)
             writer.writerows(rows)
         
-        print(f"\n✓ Successfully wrote comprehensive menu data to {csv_path}")
-        print(f"  - {len(rows)} store rows")
-        print(f"  - {len(sorted_menu_items)} menu item columns")
-        print(f"  - {len(headers)} total columns (including store_id)")
-        print("="*80 + "\n")
-        
         return sorted_menu_items
         
     except Exception as e:
-        print(f"✗ Error writing CSV: {e}")
-        print("="*80 + "\n")
         return None
 
 def main():
