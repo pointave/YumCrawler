@@ -506,6 +506,7 @@ def fetch_and_parse_store(location):
 def process_batch_fully_parallel(batch):
     """Process a batch of stores with fully parallel category fetching"""
     all_store_categories = {}
+    failed_stores = []
     
     # Step 1: Fetch main menu pages for all stores in parallel
     with ThreadPoolExecutor(max_workers=len(batch)) as executor:
@@ -519,6 +520,14 @@ def process_batch_fully_parallel(batch):
             result = future.result()
             if result['success']:
                 all_store_categories[result['store_id']] = result
+            else:
+                # Track failed stores and add them to results with empty menu
+                failed_stores.append({
+                    'store_id': result['store_id'],
+                    'location': result['location'],
+                    'menu_items': {},
+                    'success': False
+                })
     
     # Step 2: Collect all category URLs from all stores
     all_category_tasks = []
@@ -553,8 +562,7 @@ def process_batch_fully_parallel(batch):
     for store_id, store_data in all_store_categories.items():
         store_category_results = category_results.get(store_id, [])
         menu_items = parse_all_menu_items_parallel(store_category_results)
-        
-        # Collect all unique items from this batch for image downloading
+          # Collect all unique items from this batch for image downloading
         for item_name, item_data in menu_items.items():
             if item_name not in all_batch_items and item_data.get('image_url'):
                 all_batch_items[item_name] = item_data
@@ -565,6 +573,9 @@ def process_batch_fully_parallel(batch):
             'menu_items': menu_items,
             'success': True
         })
+    
+    # Add failed stores to results (so they get written to CSV with empty values)
+    batch_results.extend(failed_stores)
     
     # Download images for all unique items in this batch
     if all_batch_items:
@@ -686,18 +697,18 @@ def append_to_menu_csv(store_results, existing_items):
             writer = csv.writer(f)
             
             for result in store_results:
-                if result['success']:
-                    # Build row with prices or empty string for missing items
-                    row = [result['store_id']]
-                    for item_name in sorted_menu_items:
-                        item_data = result['menu_items'].get(item_name)
-                        # Extract price from nested dictionary
-                        if item_data:
-                            price = item_data.get('price') if isinstance(item_data, dict) else item_data
-                        else:
-                            price = None
-                        row.append(price if price is not None else '')
-                    writer.writerow(row)
+                # Write row for both successful and failed stores
+                # Failed stores will have empty values for all menu items
+                row = [result['store_id']]
+                for item_name in sorted_menu_items:
+                    item_data = result['menu_items'].get(item_name)
+                    # Extract price from nested dictionary
+                    if item_data:
+                        price = item_data.get('price') if isinstance(item_data, dict) else item_data
+                    else:
+                        price = None
+                    row.append(price if price is not None else '')
+                writer.writerow(row)
         
         return set(existing_items)  # Ensure we return a set
         
@@ -709,7 +720,7 @@ def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_ite
     """Write comprehensive CSV with all stores and all menu items"""
     if not store_results and not existing_rows:
         print("No store results to write")
-        return
+        return set()
     
     # Ensure data directory exists
     os.makedirs('data', exist_ok=True)
@@ -741,27 +752,27 @@ def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_ite
                 price = existing_row.get(item_name, '')
                 row.append(price)
             rows.append(row)
-    
-    # Add new rows from current batch
+      # Add new rows from current batch
     successful_stores = 0
     failed_stores = 0
     
     for result in store_results:
         if result['success']:
             successful_stores += 1
-            # Build row with prices or empty string for missing items
-            row = [result['store_id']]
-            for item_name in sorted_menu_items:
-                item_data = result['menu_items'].get(item_name)
-                # Extract price from nested dictionary
-                if item_data:
-                    price = item_data.get('price') if isinstance(item_data, dict) else item_data
-                else:
-                    price = None
-                row.append(price if price is not None else '')
-            rows.append(row)
         else:
             failed_stores += 1
+        
+        # Build row with prices or empty string for missing items
+        row = [result['store_id']]
+        for item_name in sorted_menu_items:
+            item_data = result['menu_items'].get(item_name)
+            # Extract price from nested dictionary
+            if item_data:
+                price = item_data.get('price') if isinstance(item_data, dict) else item_data
+            else:
+                price = None
+            row.append(price if price is not None else '')
+        rows.append(row)
     
     try:
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
