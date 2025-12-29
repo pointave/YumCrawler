@@ -29,7 +29,7 @@ def scrape_locations_from_state(state_url, state_name):
             
             for link in location_links:
                 location_name = clean_name(link.get_text(strip=True))
-                location_url = f"https://locations.tacobell.com{link.get('href', '')}"
+                location_url = f"https://locations.tacobell.com/{link.get('href', '')}"
                 locations[location_name] = location_url
         
         print(f"Found {len(locations)} locations in {state_name}")
