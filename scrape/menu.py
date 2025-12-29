@@ -1,4 +1,6 @@
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import csv
 import os
 import json
@@ -6,6 +8,27 @@ import re
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+
+# Create a global session with connection pooling and retries
+def create_session():
+    """Create a requests session with connection pooling and retries"""
+    session = requests.Session()
+    retry = Retry(
+        total=3,
+        backoff_factor=0.3,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    adapter = HTTPAdapter(
+        max_retries=retry,
+        pool_connections=100,
+        pool_maxsize=100
+    )
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+# Create global session for reuse
+SESSION = create_session()
 
 def load_first_location():
     """Load the first store from locations.csv"""
@@ -91,7 +114,7 @@ def fetch_menu_page(store_id):
     url = f"https://www.tacobell.com/food?store={store_id}"
     
     try:
-        response = requests.get(url, headers=headers)
+        response = SESSION.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.text
     except Exception as e:
@@ -167,7 +190,7 @@ def fetch_category_page(category):
     category_url = category['url']
     
     try:
-        response = requests.get(category_url, headers=headers, timeout=10)
+        response = SESSION.get(category_url, headers=headers, timeout=10)
         response.raise_for_status()
         
         return {
@@ -309,7 +332,7 @@ def download_image(url, filepath):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        response = SESSION.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         
         with open(filepath, 'wb') as f:
@@ -508,7 +531,7 @@ def process_batch_fully_parallel(batch):
     
     # Step 3: Fetch ALL category pages in parallel (across all stores)
     category_results = {}
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=50) as executor:
         future_to_task = {
             executor.submit(fetch_category_page, task['category']): task
             for task in all_category_tasks
@@ -734,7 +757,7 @@ def main():
         locations_to_process = all_locations
     
     # Process remaining stores in batches
-    process_stores_in_batches(locations_to_process, batch_size=5)
+    process_stores_in_batches(locations_to_process, batch_size=10)
     
     print("\n" + "="*80)
     print("PROCESSING COMPLETE!")
