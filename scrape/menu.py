@@ -632,8 +632,8 @@ def process_single_store(location):
 
 def process_stores_in_batches(locations, batch_size=5):
     """Process all stores in batches, saving after each batch"""
-    # Load existing data
-    existing_rows, existing_items = load_existing_menu_data()
+    # Load only menu items (not all rows) to track what columns exist
+    _, existing_items = load_existing_menu_data()
     current_menu_items = existing_items
     
     # Calculate total batches
@@ -647,15 +647,63 @@ def process_stores_in_batches(locations, batch_size=5):
             # Process batch with fully parallelized category fetching
             batch_results = process_batch_fully_parallel(batch)
             
-            # Save CSV after each batch
-            current_menu_items = write_comprehensive_menu_csv(batch_results, existing_rows, current_menu_items)
+            # Check if new menu items were discovered
+            batch_menu_items = set()
+            for result in batch_results:
+                if result['success']:
+                    batch_menu_items.update(result['menu_items'].keys())
             
-            # Update existing_rows to include the batch we just processed
-            if current_menu_items:
-                # Reload the CSV to get updated existing_rows
-                existing_rows, current_menu_items = load_existing_menu_data()
+            new_items_found = batch_menu_items - current_menu_items
+            
+            # Save CSV after each batch
+            if new_items_found:
+                # New columns found - need to rewrite entire CSV
+                existing_rows, _ = load_existing_menu_data()
+                current_menu_items = write_comprehensive_menu_csv(batch_results, existing_rows, current_menu_items)
+            else:
+                # No new columns - just append new rows
+                current_menu_items = append_to_menu_csv(batch_results, current_menu_items)
             
             pbar.update(1)
+
+def append_to_menu_csv(store_results, existing_items):
+    """Append new store rows to CSV without rewriting entire file"""
+    if not store_results:
+        return existing_items
+    
+    csv_path = 'data/menu.csv'
+    
+    if not os.path.exists(csv_path):
+        # If CSV doesn't exist, create it with these results
+        return write_comprehensive_menu_csv(store_results, None, existing_items)
+    
+    # Sort menu items alphabetically for consistent ordering
+    sorted_menu_items = sorted(existing_items)
+    
+    try:
+        # Append new rows to existing CSV
+        with open(csv_path, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            
+            for result in store_results:
+                if result['success']:
+                    # Build row with prices or empty string for missing items
+                    row = [result['store_id']]
+                    for item_name in sorted_menu_items:
+                        item_data = result['menu_items'].get(item_name)
+                        # Extract price from nested dictionary
+                        if item_data:
+                            price = item_data.get('price') if isinstance(item_data, dict) else item_data
+                        else:
+                            price = None
+                        row.append(price if price is not None else '')
+                    writer.writerow(row)
+        
+        return existing_items
+        
+    except Exception as e:
+        print(f"Error appending to CSV: {e}")
+        return existing_items
 
 def write_comprehensive_menu_csv(store_results, existing_rows=None, existing_items=None):
     """Write comprehensive CSV with all stores and all menu items"""
