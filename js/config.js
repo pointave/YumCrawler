@@ -21,15 +21,24 @@ const MAP_CONFIG = {
             updateWhenZooming: false,
             keepBuffer: 2
         }
-    },
-    markerStyle: {
+    },    markerStyle: {
         radius: 6,
         fillColor: "#7B3FF2",
         color: "#ffffff",
         weight: 2,
         opacity: 1,
         fillOpacity: 1,
-        renderer: L.canvas({ tolerance: 5 })
+        bubblingMouseEvents: true
     },
-    dataPath: 'data/locations.csv'
+    collegeMarkerStyle: {
+        radius: 8,
+        fillColor: "#1E90FF",
+        color: "#ffffff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.7,
+        bubblingMouseEvents: true
+    },
+    dataPath: 'data/locations.csv',
+    collegePath: 'data/colleges.csv'
 };

@@ -96,4 +96,38 @@ class CSVParser {
             return { headers: [], data: [] };
         }
     }
+
+    static async loadColleges(csvPath) {
+        try {
+            const response = await fetch(csvPath);
+            const csvText = await response.text();
+            const lines = csvText.trim().split('\n');
+            const colleges = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const fields = this.parseCSVLine(lines[i]);
+                if (!fields || fields.length < 6) continue;
+                
+                const [name, lat, lng, students, city, state] = fields;
+                const latitude = parseFloat(lat);
+                const longitude = parseFloat(lng);
+                
+                if (!isNaN(latitude) && !isNaN(longitude)) {
+                    colleges.push({
+                        name,
+                        lat: latitude,
+                        lng: longitude,
+                        students: parseInt(students) || 0,
+                        city,
+                        state
+                    });
+                }
+            }
+            
+            return colleges;
+        } catch (error) {
+            console.error('Error loading colleges:', error);
+            return [];
+        }
+    }
 }

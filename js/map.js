@@ -2,16 +2,19 @@ class TacoBellMap {
     constructor() {
         this.map = null;
         this.markerLayer = null;
+        this.collegeLayer = null;
         this.locations = [];
+        this.colleges = [];
         this.panelOpen = true;
         this.priceColorEnabled = false;
-    }
-
-    initialize() {
+        this.collegesVisible = false;
+    }    async initialize() {
         this.initializeMap();
-        this.loadAndDisplayLocations();
+        await this.loadAndDisplayColleges(); // Load colleges first (lower layer)
+        await this.loadAndDisplayLocations(); // Then load Taco Bells (upper layer)
         this.initializePanelToggle();
         this.initializePriceColorToggle();
+        this.initializeCollegeToggle();
         this.initializeMenuManager();
     }
 
@@ -32,6 +35,24 @@ class TacoBellMap {
             this.priceColorEnabled = e.target.checked;
             this.updateMarkerColors();
         });
+    }
+
+    initializeCollegeToggle() {
+        const toggle = document.getElementById('collegeToggle');
+        toggle.addEventListener('change', (e) => {
+            this.collegesVisible = e.target.checked;
+            this.toggleCollegeMarkers();
+        });
+    }
+
+    toggleCollegeMarkers() {
+        if (!this.collegeLayer) return;
+        
+        if (this.collegesVisible) {
+            this.map.addLayer(this.collegeLayer);
+        } else {
+            this.map.removeLayer(this.collegeLayer);
+        }
     }
 
     async initializeMenuManager() {
@@ -59,9 +80,7 @@ class TacoBellMap {
                 popup.setContent(this.createPopupContent(marker.locationData));
             }
         });
-    }
-
-    initializeMap() {
+    }    initializeMap() {
         this.map = L.map('map', MAP_CONFIG.mapOptions)
             .setView([MAP_CONFIG.initialView.lat, MAP_CONFIG.initialView.lng], MAP_CONFIG.initialView.zoom);
         
@@ -130,6 +149,25 @@ class TacoBellMap {
         // Store location reference for later updates
         marker.locationData = location;
         return marker;
+    }
+
+    createCollegeMarker(college) {
+        const marker = L.circleMarker([college.lat, college.lng], MAP_CONFIG.collegeMarkerStyle)
+            .bindPopup(this.createCollegePopupContent(college), {
+                maxWidth: 300,
+                autoPan: false
+            });
+        
+        return marker;
+    }
+
+    createCollegePopupContent(college) {
+        const studentsFormatted = college.students.toLocaleString();
+        return `
+            <div class="popup-title">${college.name}</div>
+            <div class="popup-id">${college.city}, ${college.state}</div>
+            <div class="popup-price">Students: ${studentsFormatted}</div>
+        `;
     }
 
     getPriceColor(price, minPrice, maxPrice) {
@@ -229,6 +267,17 @@ class TacoBellMap {
         
         const bounds = L.latLngBounds(this.locations.map(loc => [loc.lat, loc.lng]));
         this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    async loadAndDisplayColleges() {
+        this.colleges = await CSVParser.loadColleges(MAP_CONFIG.collegePath);
+        
+        if (this.colleges.length === 0) return;
+        
+        const markers = this.colleges.map(college => this.createCollegeMarker(college));
+        this.collegeLayer = L.layerGroup(markers);
+        
+        // Don't add to map by default, wait for toggle
     }
 }
 
