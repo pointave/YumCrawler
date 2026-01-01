@@ -1127,6 +1127,10 @@ class TacoBellMap {    constructor() {
     }
     
     async switchRestaurant(locationsPath) {
+        // Store current map view to preserve it
+        const currentCenter = this.map.getCenter();
+        const currentZoom = this.map.getZoom();
+        
         // Clear existing markers
         if (this.markerLayer) {
             this.map.removeLayer(this.markerLayer);
@@ -1142,9 +1146,8 @@ class TacoBellMap {    constructor() {
         const markers = this.locations.map(loc => this.createMarker(loc));
         this.markerLayer = L.layerGroup(markers).addTo(this.map);
         
-        // Update map bounds to fit new locations
-        const bounds = L.latLngBounds(this.locations.map(loc => [loc.lat, loc.lng]));
-        this.map.fitBounds(bounds, { padding: [50, 50] });
+        // Restore the previous map view instead of auto-zooming
+        this.map.setView([currentCenter.lat, currentCenter.lng], currentZoom);
         
         // Update marker colors if pricing is enabled
         if (this.priceColorEnabled) {
