@@ -36,9 +36,20 @@
         <div class="order-summary">
             <div class="order-header">
                 <h3>Your Order</h3>
+                <!-- Restaurant Toggle -->
+                <div class="restaurant-toggle">
+                    <button id="restaurantBtn" class="restaurant-btn">
+                        <span class="restaurant-icon">🍗</span>
+                        <span id="restaurantName">KFC</span>
+                    </button>
+                </div>
             </div>
             <div id="orderList" class="order-list">
                 <p class="empty-order">No items in order</p>
+            </div>
+            <!-- Clear Selection Button -->
+            <div class="clear-selection-container" id="clearSelectionContainer" style="display: none;">
+                <button id="clearSelectionBtn" class="clear-selection-btn">Clear Selection</button>
             </div>
             <div id="orderPricing" class="order-pricing" style="display: none;">
                 <div class="price-row">
