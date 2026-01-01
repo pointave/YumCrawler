@@ -31,25 +31,51 @@ class CSVParser {
             const lines = csvText.trim().split('\n');
             const locations = [];
             
+            // Check if this is KFC format (has lat/lng columns) or Taco Bell format
+            const header = this.parseCSVLine(lines[0]);
+            const isKfcFormat = header.includes('lat') && header.includes('lng');
+            
+            console.log(`Loading locations from ${csvPath}, format: ${isKfcFormat ? 'KFC' : 'Taco Bell'}`);
+            
             for (let i = 1; i < lines.length; i++) {
                 const fields = this.parseCSVLine(lines[i]);
                 if (!fields || fields.length < 4) continue;
                 
-                const [storeId, location, page, mapUrl] = fields;
-                const coords = this.extractCoordinates(mapUrl);
-                
-                if (coords) {
-                    locations.push({
-                        storeId,
-                        location,
-                        page,
-                        mapUrl,
-                        lat: coords.lat,
-                        lng: coords.lng
-                    });
+                if (isKfcFormat) {
+                    // KFC format: [storeId, location, page, map, lat, lng]
+                    const [storeId, location, page, mapUrl, lat, lng] = fields;
+                    const latitude = parseFloat(lat);
+                    const longitude = parseFloat(lng);
+                    
+                    if (!isNaN(latitude) && !isNaN(longitude)) {
+                        locations.push({
+                            storeId,
+                            location,
+                            page,
+                            mapUrl,
+                            lat: latitude,
+                            lng: longitude
+                        });
+                    }
+                } else {
+                    // Taco Bell format: [storeId, location, page, mapUrl] with coords in mapUrl
+                    const [storeId, location, page, mapUrl] = fields;
+                    const coords = this.extractCoordinates(mapUrl);
+                    
+                    if (coords) {
+                        locations.push({
+                            storeId,
+                            location,
+                            page,
+                            mapUrl,
+                            lat: coords.lat,
+                            lng: coords.lng
+                        });
+                    }
                 }
             }
             
+            console.log(`Loaded ${locations.length} locations`);
             return locations;
         } catch (error) {
             console.error('Error loading locations:', error);
