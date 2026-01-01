@@ -412,34 +412,54 @@ class MenuManager {
             itemEl.className = 'menu-item';
             
             const quantity = this.order[item.name] || 0;
+            console.log(`Rendering item: ${item.name}, quantity: ${quantity}, order object:`, this.order);
             
             itemEl.innerHTML = `
                 <img src="${item.imagePath}" alt="${item.name}" class="menu-item-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 font-size=%2212%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                 <div class="menu-item-info">
                     <h4 class="menu-item-name">${item.name}</h4>
                     <div class="menu-item-counter">
-                        <button class="counter-btn" onclick="menuManager.decrementItem('${item.name.replace(/'/g, "\\'")}')">−</button>
+                        <button class="counter-btn decrement-btn" data-item="${item.name.replace(/'/g, "\\'")}">−</button>
                         <span class="counter-value">${quantity}</span>
-                        <button class="counter-btn" onclick="menuManager.incrementItem('${item.name.replace(/'/g, "\\'")}')">+</button>
+                        <button class="counter-btn increment-btn" data-item="${item.name.replace(/'/g, "\\'")}">+</button>
                     </div>
                 </div>
             `;
+            
+            // Add event listeners
+            const incrementBtn = itemEl.querySelector('.increment-btn');
+            const decrementBtn = itemEl.querySelector('.decrement-btn');
+            
+            incrementBtn.addEventListener('click', () => {
+                console.log('Increment button clicked for:', item.name);
+                this.incrementItem(item.name);
+            });
+            
+            decrementBtn.addEventListener('click', () => {
+                console.log('Decrement button clicked for:', item.name);
+                this.decrementItem(item.name);
+            });
             
             container.appendChild(itemEl);
         });
     }
 
     incrementItem(itemName) {
+        console.log(`Incrementing item: ${itemName}`);
         this.order[itemName] = (this.order[itemName] || 0) + 1;
+        console.log(`New quantity: ${this.order[itemName]}`);
+        console.log('Order object:', this.order);
         this.updateUI();
     }
 
     decrementItem(itemName) {
+        console.log(`Decrementing item: ${itemName}`);
         if (this.order[itemName] > 0) {
             this.order[itemName]--;
             if (this.order[itemName] === 0) {
                 delete this.order[itemName];
             }
+            console.log(`New quantity: ${this.order[itemName] || 0}`);
             this.updateUI();
         }
     }
