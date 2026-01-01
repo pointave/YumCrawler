@@ -46,7 +46,7 @@ const MAP_CONFIG = {
         opacity: 1,
         fillOpacity: 0.8,
         bubblingMouseEvents: true
-    },    dataPath: 'data/locations.csv',
+    },    dataPath: 'KFC/data/locations.csv',
     collegePath: 'data/colleges.csv',
     civicsPath: 'data/civics.csv',
     statesGeoJsonPath: 'data/us-states.json',
