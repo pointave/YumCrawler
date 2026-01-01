@@ -126,6 +126,24 @@ class TacoBellMap {    constructor() {
             if (marker.isPopupOpen()) {
                 const popup = marker.getPopup();
                 popup.setContent(this.createPopupContent(marker.locationData));
+                // Force popup refresh to ensure content updates
+                popup.update();
+            }
+        });
+    }
+    
+    // Force update all popups when selection is cleared
+    forceUpdateAllPopups() {
+        if (!this.markerLayer) return;
+        
+        // Close and reopen all currently open popups to force refresh
+        this.markerLayer.eachLayer(marker => {
+            if (marker.isPopupOpen()) {
+                marker.closePopup();
+                // Small delay to ensure close completes, then reopen
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 50);
             }
         });
     }    initializeMap() {
