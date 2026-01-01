@@ -1,0 +1,51 @@
+name,lat,lng,students,city,state
+University of Southern California,34.0224,-118.2851,49500,Los Angeles,CA
+University of California Los Angeles,34.0689,-118.4452,46000,Los Angeles,CA
+Stanford University,37.4275,-122.1697,17249,Stanford,CA
+University of California Berkeley,37.8719,-122.2585,45057,Berkeley,CA
+University of Texas at Austin,30.2849,-97.7341,52384,Austin,TX
+Texas A&M University,30.6280,-96.3344,74196,College Station,TX
+University of Florida,29.6436,-82.3549,55781,Gainesville,FL
+Florida State University,30.4419,-84.2981,44161,Tallahassee,FL
+University of Central Florida,28.6024,-81.2001,70406,Orlando,FL
+University of Michigan,42.2780,-83.7382,47907,Ann Arbor,MI
+Michigan State University,42.7018,-84.4822,50344,East Lansing,MI
+Ohio State University,40.0067,-83.0305,66046,Columbus,OH
+Pennsylvania State University,40.7982,-77.8599,46810,University Park,PA
+New York University,40.7295,-73.9965,59144,New York,NY
+Columbia University,40.8075,-73.9626,36048,New York,NY
+Boston University,42.3505,-71.1054,36714,Boston,MA
+Arizona State University,33.4242,-111.9281,80065,Tempe,AZ
+University of Arizona,32.2319,-110.9501,49403,Tucson,AZ
+University of Washington,47.6553,-122.3035,52242,Seattle,WA
+University of Oregon,44.0448,-123.0726,22517,Eugene,OR
+University of Colorado Boulder,40.0076,-105.2659,37437,Boulder,CO
+University of Utah,40.7649,-111.8421,33081,Salt Lake City,UT
+University of Georgia,33.9480,-83.3773,40118,Athens,GA
+Georgia Institute of Technology,33.7756,-84.3963,44067,Atlanta,GA
+University of North Carolina at Chapel Hill,35.9049,-79.0469,31705,Chapel Hill,NC
+Duke University,36.0014,-78.9382,17620,Durham,NC
+University of Virginia,38.0336,-78.5080,26082,Charlottesville,VA
+Virginia Tech,37.2284,-80.4234,37080,Blacksburg,VA
+University of Wisconsin Madison,43.0766,-89.4125,48956,Madison,WI
+University of Minnesota,44.9740,-93.2277,51848,Minneapolis,MN
+Purdue University,40.4237,-86.9212,50884,West Lafayette,IN
+Indiana University Bloomington,39.1754,-86.5123,47695,Bloomington,IN
+University of Illinois Urbana-Champaign,40.1020,-88.2272,56607,Urbana,IL
+University of Iowa,41.6628,-91.5348,33334,Iowa City,IA
+Iowa State University,42.0267,-93.6465,30708,Ames,IA
+University of Kansas,38.9543,-95.2558,27135,Lawrence,KS
+Kansas State University,39.1949,-96.5847,19472,Manhattan,KS
+University of Nebraska Lincoln,40.8202,-96.7005,25006,Lincoln,NE
+University of Oklahoma,35.2058,-97.4458,32676,Norman,OK
+Oklahoma State University,36.1156,-97.0584,25372,Stillwater,OK
+University of Tennessee,35.9544,-83.9295,33805,Knoxville,TN
+Vanderbilt University,36.1447,-86.8027,13796,Nashville,TN
+University of Alabama,33.2098,-87.5692,38563,Tuscaloosa,AL
+Auburn University,32.5990,-85.4897,31526,Auburn,AL
+Louisiana State University,30.4133,-91.1800,37348,Baton Rouge,LA
+University of Kentucky,38.0297,-84.5037,30545,Lexington,KY
+University of South Carolina,33.9974,-81.0288,35364,Columbia,SC
+Clemson University,34.6781,-82.8374,27341,Clemson,SC
+University of Arkansas,36.0679,-94.1748,30936,Fayetteville,AR
+University of Mississippi,34.3665,-89.5349,23213,Oxford,MS
