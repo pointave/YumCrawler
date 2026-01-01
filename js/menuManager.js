@@ -321,6 +321,11 @@ class MenuManager {
     clearOrder() {
         this.order = {};
         this.updateUI();
+        
+        // Force update all open popups to ensure they reflect cleared selection
+        if (window.mapManager) {
+            window.mapManager.forceUpdateAllPopups();
+        }
     }
     
     async switchRestaurant() {
