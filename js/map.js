@@ -104,12 +104,12 @@ class TacoBellMap {    constructor() {
     }
 
     async initializeMenuManager() {
-        menuManager = new MenuManager();
-        await menuManager.initialize();
+        window.menuManager = new MenuManager();
+        await window.menuManager.initialize();
         
         // Listen for order updates to refresh marker colors and popups
-        const originalUpdateUI = menuManager.updateUI.bind(menuManager);
-        menuManager.updateUI = () => {
+        const originalUpdateUI = window.menuManager.updateUI.bind(window.menuManager);
+        window.menuManager.updateUI = () => {
             originalUpdateUI();
             if (this.priceColorEnabled) {
                 this.updateMarkerColors();
@@ -179,7 +179,7 @@ class TacoBellMap {    constructor() {
 
     createPopupContent(location) {
         // Get the price for this specific location
-        const price = menuManager?.getLocationPriceForColoring(location.storeId);
+        const price = window.menuManager?.getLocationPriceForColoring(location.storeId);
         const priceHTML = price !== null && price !== undefined 
             ? `<div class="popup-price">Your Order: $${price.toFixed(2)}</div>`
             : '';
@@ -352,7 +352,7 @@ class TacoBellMap {    constructor() {
         // Get price range for color gradient
         const prices = [];
         layers.forEach(marker => {
-            const price = menuManager.getLocationPriceForColoring(marker.locationData.storeId);
+            const price = window.menuManager.getLocationPriceForColoring(marker.locationData.storeId);
             if (price !== null) {
                 prices.push(price);
             }
@@ -371,7 +371,7 @@ class TacoBellMap {    constructor() {
         
         // Update each marker color based on price
         layers.forEach(marker => {
-            const price = menuManager.getLocationPriceForColoring(marker.locationData.storeId);
+            const price = window.menuManager.getLocationPriceForColoring(marker.locationData.storeId);
             
             if (price !== null) {
                 const color = this.getPriceColor(price, minPrice, maxPrice);
@@ -388,7 +388,9 @@ class TacoBellMap {    constructor() {
     }
 
     async loadAndDisplayLocations() {
+        console.log('Loading locations from:', MAP_CONFIG.dataPath);
         this.locations = await CSVParser.loadLocations(MAP_CONFIG.dataPath);
+        console.log('Locations loaded:', this.locations.length);
         
         document.getElementById('loading').style.display = 'none';
         
@@ -1105,10 +1107,36 @@ class TacoBellMap {    constructor() {
             }
         ];
     }
+    
+    async switchRestaurant(locationsPath) {
+        // Clear existing markers
+        if (this.markerLayer) {
+            this.map.removeLayer(this.markerLayer);
+            this.markerLayer = null;
+        }
+        
+        // Load new locations
+        this.locations = await CSVParser.loadLocations(locationsPath);
+        
+        if (this.locations.length === 0) return;
+        
+        // Create new markers
+        const markers = this.locations.map(loc => this.createMarker(loc));
+        this.markerLayer = L.layerGroup(markers).addTo(this.map);
+        
+        // Update map bounds to fit new locations
+        const bounds = L.latLngBounds(this.locations.map(loc => [loc.lat, loc.lng]));
+        this.map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Update marker colors if pricing is enabled
+        if (this.priceColorEnabled) {
+            this.updateMarkerColors();
+        }
+    }
 }
 
 // Initialize map when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    const tacoBellMap = new TacoBellMap();
-    tacoBellMap.initialize();
+    window.mapManager = new TacoBellMap();
+    window.mapManager.initialize();
 });
