@@ -1,6 +1,6 @@
 # YumCrawler - Multi-Restaurant Menu & Location Explorer
 
-A web application that displays menu items and locations for KFC and Taco Bell restaurants across the United States. Features interactive mapping, menu browsing, and order calculation functionality.
+A web application that displays menu items and locations for KFC and Taco Bell restaurants across the United States. Features interactive mapping, menu browsing, and order calculation functionality. Will probably add Pizza Hut and Long John Silvers if site format is similar.
 
 
 ## Setup & Installation
@@ -13,7 +13,7 @@ A web application that displays menu items and locations for KFC and Taco Bell r
 
 1. **Clone/Download the repository**
    ```bash
-   git clone <repository-url>
+   git clone github.com/pointave/YumCrawler/
    cd YumCrawler
    ```
 
@@ -78,7 +78,7 @@ YumCrawler/
 - Direct coordinate parsing (KFC)
 - Error handling and data validation
 
-## Data Sourc
+## Data Source
 
 - **Images**: High-quality product images from restaurant websites
 - **Maps**: OpenStreetMap tiles via CartoDB
