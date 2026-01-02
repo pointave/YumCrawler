@@ -32,20 +32,25 @@ class MenuManager {
                 dataPath: 'data/menu.csv',
                 locationsPath: 'data/locations.csv',
                 categories: [
-                    'Best Sellers',
-                    'Combos & Boxes',
-                    'Breakfast',
+                    'Tacos',
                     'Burritos',
+                    'Quesadillas',
+                    'Specialties',
+                    'Nachos',
+                    'Bowls',
+                    'Sides & Sweets',
+                    'Drinks',
+                    'Breakfast',
+                    'Combos & Boxes',
                     'Cravings Value Menu',
                     'Cantina Chicken Menu',
-                    'Specialties',
-                    'Bowls',
-                    'Quesadillas',
-                    'Chalupas',
+                    'Veggie Cravings',
+                    'Best Sellers',
+                    'New',
+                    'Online Exclusives',
+                    'Member Exclusives',
                     'Groups',
-                    'Drinks',
-                    'Sweets',
-                    'Sides'
+                    'Live Más Café and Drinks'
                 ]
             }
         };
@@ -92,148 +97,203 @@ class MenuManager {
     getItemsForCategoryFallback(category) {
         console.log(`Getting items for category: ${category} (restaurant: ${this.currentRestaurant})`);
         
-        const categoryMap = this.currentRestaurant === 'kfc' ? {
-            'The Latest': [
-                'Gravy Fest Flight', 'Festive Pot Pie', 'Festive Pot Pie Meal', 'Gravy Fest Tenders Box',
-                'Signature Brown Gravy', 'White Peppercorn Gravy', 'Southwest Cheddar Gravy',
-                'Extra Crispy Festive Feast', 'Sidesgiving'
-            ],
-            'Combos': [
-                'Festive Pot Pie Meal', 'Gravy Fest Tenders Box', 'Original Honey BBQ 2 pc. Chicken Combo',
-                'Original Honey BBQ 3 pc. Chicken Combo', 'Original Honey BBQ 3 pc. Tenders Combo',
-                'Original Honey BBQ 4 pc. Tenders Combo', 'Original Honey BBQ Chicken Sandwich Combo',
-                'Wings & Wedges Combo', '3 pc. Mike\'s Hot Honey Chicken Combo', '4 pc. Mike\'s Hot Honey Tenders Combo',
-                'Mike\'s Hot Honey Chicken Sandwich Combo', 'Meal for Two: 2 Sandwiches + 4 pc. Tenders Combo',
-                'Meal for Two: 2 Sandwiches + 10 pc. Nuggets Combo', 'Meal for Two: 5 pc. Chicken Combo',
-                'Chicken Combo', '3 pc. Chicken Big Box Meal', 'Tenders Combos', '5 pc. Tenders Big Box Meal',
-                'Classic Chicken Sandwich Combo', 'Spicy Chicken Sandwich Combo',
-                'Classic Chicken Sandwich + Nuggets Big Box Meal', 'Spicy Chicken Sandwich + Nuggets Big Box Meal',
-                'Famous Bowl Combo', 'Pot Pie Combo'
-            ],
-            'Family Meals': [
-                'Extra Crispy Festive Feast', 'Wings and Wedges Fan Favorites Box', 'Fan Favorites Box',
-                'Double Mash Meal', 'Mike\'s Hot Honey Fan Favorite\'s Box',
-                'Chicken & Tenders Feast: 6 pc. Chicken + 6 pc. Tenders', 'Taste of KFC 4 pc. Deal',
-                'Taste of KFC 6 pc. Deal', '6 pc. Tenders + 12 pc. Nuggets Family Meal',
-                '6 pc. Chicken + 12 pc. Nuggets Family Meal', 'Chicken Meal', 'Tenders Meals',
-                'Chicken Only', 'Tenders Only', '5 pc. Nugget Kids Meal', '2 pc. Tenders Kids Meal'
-            ],
-            'Fried Chicken': [
-                'Original Honey BBQ 2 pc. Chicken Combo', 'Original Honey BBQ 3 pc. Chicken Combo',
-                'Hot & Spicy Wings', '3 pc. Mike\'s Hot Honey Chicken Combo', 'Taste of KFC Deal',
-                'Meal for Two: 5 pc. Chicken Combo', 'Chicken Combo', '3 pc. Chicken Big Box Meal',
-                'Double Mash Meal', 'Chicken Meal', 'Chicken Only', 'Chicken Breast',
-                'Chicken Drum', 'Chicken Thigh', 'Chicken Wing'
-            ],
-            'Tenders': [
-                'Gravy Fest Tenders Box', 'Original Honey BBQ 3 pc. Tenders Combo',
-                'Original Honey BBQ 4 pc. Tenders Combo', '4 pc. Mike\'s Hot Honey Tenders Combo',
-                'Tenders Combos', '5 pc. Tenders Big Box Meal', 'Tenders Meals',
-                'Tenders Only', '2 pc. Tenders Kids Meal', 'Chicken Tender'
-            ],
-            'Nuggets': [
-                'Nuggets Combo', 'Nuggets Only', '5 pc. Nugget Kids Meal'
-            ],
-            'Drinks': [
-                'Mountain Dew Sweet Lightning Peaches & Cream Soda', 'Pepsi with Sweet, Vanilla Cream',
-                'Lemonade with Sweet, Vanilla Cream', '1/2 Gallon Drink', 'Pepsi',
-                'Pepsi Zero Sugar', 'Starry', 'Mountain Dew', 'Mountain Dew Sweet Lightning',
-                'Sweet Tea', "The Colonel's Lemonade"
-            ],
-            'Sandwiches': [
-                'Original Honey BBQ Chicken Sandwich Combo', 'Original Honey BBQ Chicken Sandwich',
-                'Mike\'s Hot Honey Chicken Sandwich Combo', 'Meal for Two: 2 Sandwiches + 4 pc. Tenders Combo',
-                'Meal for Two: 2 Sandwiches + 10 pc. Nuggets Combo', 'Mike\'s Hot Honey Chicken Sandwich',
-                'Classic Chicken Sandwich Combo', 'Spicy Chicken Sandwich Combo',
-                'Classic Chicken Sandwich + Nuggets Big Box Meal', 'Spicy Chicken Sandwich + Nuggets Big Box Meal',
-                'Chicken Little Combo', 'Chicken Sandwich', 'Spicy Chicken Sandwich', 'Chicken Little'
-            ],
-            'Pot Pies & Bowls': [
-                'Festive Pot Pie Meal', 'Festive Pot Pie', 'Famous Bowl Combo', 'Pot Pie Combo', 'Famous Bowl'
-            ],
-            'Side, Sweets, Sauces': [
-                'Signature Brown Gravy', 'White Peppercorn Gravy', 'Southwest Cheddar Gravy', 'Sidesgiving',
-                'Gravy Fest Flight', 'Biscuit', 'Original Honey BBQ Drum', 'Potato Wedges',
-                'Mike\'s Hot Honey Biscuits', 'Pie Poppers', 'Secret Recipe Fries', 'Mashed Potatoes and Gravy',
-                'Mac & Cheese', 'Biscuit', 'Cole Slaw', 'Sweet Corn', 'Mashed Potatoes',
-                'Chicken Little', 'Chicken Breast', 'Chicken Drum', 'Chicken Thigh',
-                'Chicken Wing', 'Chicken Tender', 'Chocolate Chip Cake'
-            ]
-        } : {
-            // Taco Bell categories
-            'Best Sellers': [
-                'Crunchy Taco', 'Soft Taco', 'Cheesy Gordita Crunch', 'Chalupa Supreme',
-                'Cheesy Potato Burrito', 'Beefy 5-Layer Burrito', 'Quesarito'
-            ],
-            'Combos & Boxes': [
-                '3 Crunchy Tacos Combo', '3 Soft Tacos Combo', 'Crunchy Taco Combo',
-                'Soft Taco Combo', 'Build Your Own Cravings Box', 'Build Your Own Luxe Cravings Box'
-            ],
-            'Breakfast': [
-                'Breakfast Crunchwrap', 'Breakfast Quesadilla', 'Breakfast Taco',
-                'Bell Breakfast Box', 'Breakfast California Crunchwrap'
+        // For KFC, use hardcoded categories as before
+        if (this.currentRestaurant === 'kfc') {
+            const categoryMap = {
+                'The Latest': [
+                    'Gravy Fest Flight', 'Festive Pot Pie', 'Festive Pot Pie Meal', 'Gravy Fest Tenders Box',
+                    'Signature Brown Gravy', 'White Peppercorn Gravy', 'Southwest Cheddar Gravy',
+                    'Extra Crispy Festive Feast', 'Sidesgiving'
+                ],
+                'Combos': [
+                    'Festive Pot Pie Meal', 'Gravy Fest Tenders Box', 'Original Honey BBQ 2 pc. Chicken Combo',
+                    'Original Honey BBQ 3 pc. Chicken Combo', 'Original Honey BBQ 3 pc. Tenders Combo',
+                    'Original Honey BBQ 4 pc. Tenders Combo', 'Original Honey BBQ Chicken Sandwich Combo',
+                    'Wings & Wedges Combo', '3 pc. Mike\'s Hot Honey Chicken Combo', '4 pc. Mike\'s Hot Honey Tenders Combo',
+                    'Mike\'s Hot Honey Chicken Sandwich Combo', 'Meal for Two: 2 Sandwiches + 4 pc. Tenders Combo',
+                    'Meal for Two: 2 Sandwiches + 10 pc. Nuggets Combo', 'Meal for Two: 5 pc. Chicken Combo',
+                    'Chicken Combo', '3 pc. Chicken Big Box Meal', 'Tenders Combos', '5 pc. Tenders Big Box Meal',
+                    'Classic Chicken Sandwich Combo', 'Spicy Chicken Sandwich Combo',
+                    'Classic Chicken Sandwich + Nuggets Big Box Meal', 'Spicy Chicken Sandwich + Nuggets Big Box Meal',
+                    'Famous Bowl Combo', 'Pot Pie Combo'
+                ],
+                'Family Meals': [
+                    'Extra Crispy Festive Feast', 'Wings and Wedges Fan Favorites Box', 'Fan Favorites Box',
+                    'Double Mash Meal', 'Mike\'s Hot Honey Fan Favorite\'s Box',
+                    'Chicken & Tenders Feast: 6 pc. Chicken + 6 pc. Tenders', 'Taste of KFC 4 pc. Deal',
+                    'Taste of KFC 6 pc. Deal', '6 pc. Tenders + 12 pc. Nuggets Family Meal',
+                    '6 pc. Chicken + 12 pc. Nuggets Family Meal', 'Chicken Meal', 'Tenders Meals',
+                    'Chicken Only', 'Tenders Only', '5 pc. Nugget Kids Meal', '2 pc. Tenders Kids Meal'
+                ],
+                'Fried Chicken': [
+                    'Original Honey BBQ 2 pc. Chicken Combo', 'Original Honey BBQ 3 pc. Chicken Combo',
+                    'Hot & Spicy Wings', '3 pc. Mike\'s Hot Honey Chicken Combo', 'Taste of KFC Deal',
+                    'Meal for Two: 5 pc. Chicken Combo', 'Chicken Combo', '3 pc. Chicken Big Box Meal',
+                    'Double Mash Meal', 'Chicken Meal', 'Chicken Only', 'Chicken Breast',
+                    'Chicken Drum', 'Chicken Thigh', 'Chicken Wing'
+                ],
+                'Tenders': [
+                    'Gravy Fest Tenders Box', 'Original Honey BBQ 3 pc. Tenders Combo',
+                    'Original Honey BBQ 4 pc. Tenders Combo', '4 pc. Mike\'s Hot Honey Tenders Combo',
+                    'Tenders Combos', '5 pc. Tenders Big Box Meal', 'Tenders Meals',
+                    'Tenders Only', '2 pc. Tenders Kids Meal', 'Chicken Tender'
+                ],
+                'Nuggets': [
+                    'Nuggets Combo', 'Nuggets Only', '5 pc. Nugget Kids Meal'
+                ],
+                'Drinks': [
+                    'Mountain Dew Sweet Lightning Peaches & Cream Soda', 'Pepsi with Sweet, Vanilla Cream',
+                    'Lemonade with Sweet, Vanilla Cream', '1/2 Gallon Drink', 'Pepsi',
+                    'Pepsi Zero Sugar', 'Starry', 'Mountain Dew', 'Mountain Dew Sweet Lightning',
+                    'Sweet Tea', "The Colonel's Lemonade"
+                ],
+                'Sandwiches': [
+                    'Original Honey BBQ Chicken Sandwich Combo', 'Original Honey BBQ Chicken Sandwich',
+                    'Mike\'s Hot Honey Chicken Sandwich Combo', 'Meal for Two: 2 Sandwiches + 4 pc. Tenders Combo',
+                    'Meal for Two: 2 Sandwiches + 10 pc. Nuggets Combo', 'Mike\'s Hot Honey Chicken Sandwich',
+                    'Classic Chicken Sandwich Combo', 'Spicy Chicken Sandwich Combo',
+                    'Classic Chicken Sandwich + Nuggets Big Box Meal', 'Spicy Chicken Sandwich + Nuggets Big Box Meal',
+                    'Chicken Little Combo', 'Chicken Sandwich', 'Spicy Chicken Sandwich', 'Chicken Little'
+                ],
+                'Pot Pies & Bowls': [
+                    'Festive Pot Pie Meal', 'Festive Pot Pie', 'Famous Bowl Combo', 'Pot Pie Combo', 'Famous Bowl'
+                ],
+                'Side, Sweets, Sauces': [
+                    'Signature Brown Gravy', 'White Peppercorn Gravy', 'Southwest Cheddar Gravy', 'Sidesgiving',
+                    'Gravy Fest Flight', 'Biscuit', 'Original Honey BBQ Drum', 'Potato Wedges',
+                    'Mike\'s Hot Honey Biscuits', 'Pie Poppers', 'Secret Recipe Fries', 'Mashed Potatoes and Gravy',
+                    'Mac & Cheese', 'Biscuit', 'Cole Slaw', 'Sweet Corn', 'Mashed Potatoes',
+                    'Chicken Little', 'Chicken Breast', 'Chicken Drum', 'Chicken Thigh',
+                    'Chicken Wing', 'Chicken Tender', 'Chocolate Chip Cake'
+                ]
+            };
+            
+            const items = [];
+            const categoryItems = categoryMap[category] || [];
+            
+            categoryItems.forEach(itemName => {
+                if (this.menuData.headers.includes(itemName)) {
+                    const imagePath = `KFC/images/${category}/${encodeURIComponent(itemName)}.jpg`;
+                    items.push({
+                        name: itemName,
+                        category: category,
+                        imagePath: imagePath
+                    });
+                }
+            });
+            
+            return items;
+        }
+        
+        // For Taco Bell, use the complete hardcoded mapping from Taco-Bell-Crawler
+        if (!this.menuData || !this.menuData.headers) {
+            console.log('No menu data available for Taco Bell');
+            return [];
+        }
+        
+        const categoryMap = {
+            'Tacos': [
+                'Soft Taco', 'Crunchy Taco', 'Soft Taco Supreme®', 'Crunchy Taco Supreme®',
+                'Nacho Cheese Doritos® Locos Tacos', 'Nacho Cheese Doritos® Locos Tacos Supreme®',
+                'Chalupa Supreme', 'Chalupa Supreme®', 'Black Bean Chalupa Supreme', 'Black Bean Chalupa Supreme®', 
+                'Cheesy Gordita Crunch', 'Doritos® Cheesy Gordita Crunch - Nacho Cheese', 'Double Stacked Taco',
+                'Spicy Potato Soft Taco', 'Cantina Chicken Soft Taco', 'Cantina Chicken Crispy Taco',
+                'Avocado Ranch Crispy Chicken Soft Taco', 'Creamy Chipotle Crispy Chicken Soft Taco',
+                'Frank\'s RedHot® Diablo Crispy Chicken Soft Taco'
             ],
             'Burritos': [
-                'Bean Burrito', 'Beefy 5-Layer Burrito', 'Burrito Supreme',
-                'Cheesy Bean & Rice Burrito', '7-Layer Burrito'
-            ],
-            'Cravings Value Menu': [
-                'Spicy Potato Soft Taco', 'Cheesy Roll Up', 'Beefy Fritos Burrito',
-                'Double Stacked Taco', 'Mini Taco Salad'
-            ],
-            'Cantina Chicken Menu': [
-                'Cantina Chicken Bowl', 'Cantina Chicken Crispy Taco',
-                'Cantina Chicken Soft Taco', 'Cantina Chicken Burrito'
-            ],
-            'Specialties': [
-                'Crunchwrap Supreme', 'Mexican Pizza', 'Nacho Fries',
-                'Loaded Taco Nacho Fries', 'Cheesy Gordita Crunch'
-            ],
-            'Bowls': [
-                'Cantina Chicken Bowl', 'Veggie Bowl', 'Power Menu Bowl',
-                'Fiesta Taco Salad', 'Nacho Fries BellGrande'
+                'Bean Burrito', 'Burrito Supreme®', 'Beefy 5-Layer Burrito', 'Cheesy Bean and Rice Burrito',
+                'Cheesy Double Beef Burrito', 'Grilled Cheese Burrito', 'Quesarito', 'Chicken Enchilada Burrito',
+                'Black Bean Grilled Cheese Burrito - Black Beans', 'Cantina Chicken Burrito',
+                'Avocado Ranch Crispy Chicken Burrito', 'Creamy Chipotle Crispy Chicken Burrito',
+                'Frank\'s RedHot® Diablo Crispy Chicken Burrito', 'Slow Roasted Chicken Cheesy Dipping Burritos',
+                'Steak Cheesy Dipping Burritos'
             ],
             'Quesadillas': [
                 'Cheese Quesadilla', 'Chicken Quesadilla', 'Steak Quesadilla',
-                'Breakfast Quesadilla'
+                'Cantina Chicken Quesadilla', 'Steak & Poblano Rolled Quesadilla'
             ],
-            'Chalupas': [
-                'Chalupa Supreme', 'Black Bean Chalupa Supreme',
-                'Chicken Chalupa Supreme', 'Steak Chalupa Supreme'
+            'Specialties': [
+                'Crunchwrap Supreme®', 'Black Bean Crunchwrap Supreme®', 'Mexican Pizza',
+                'Veggie Mexican Pizza'
             ],
-            'Groups': [
-                'Taco Party Pack', 'Variety Taco Party Pack', 'Supreme Taco Party Pack',
-                'Taco & Burrito Cravings Pack', 'Soft Taco Party Pack'
+            'Nachos': [
+                'Nachos BellGrande®', 'Chips and Nacho Cheese Sauce', 'Chips and Guacamole',
+                'Loaded Beef Nachos', 'Nacho Fries', 'Large Nacho Fries', 'Steak Garlic Nacho Fries',
+                'Frank\'s RedHot® Diablo Chicken Nacho Fries'
+            ],
+            'Bowls': [
+                'Cantina Chicken Bowl', 'Veggie Bowl'
+            ],
+            'Sides & Sweets': [
+                'Cheesy Fiesta Potatoes', 'Cheesy Roll Up', 'Black Beans', 'Black Beans and Rice',
+                'Pintos N Cheese', 'Cinnamon Twists', 'Cinnabon Delights® 2 Pack',
+                'Cinnabon Delights® 12 Pack', 'Hash Brown'
             ],
             'Drinks': [
-                'Baja Blast®', 'Mountain Dew', 'Pepsi', 'Dr Pepper', 'Lemonade', 'Orange Juice', 'Milk', 'Water',
-                'Bottled Pepsi®', 'Bottled Diet Pepsi®', 'Bottled Pepsi® Zero', 'Bottled Mountain Dew®', 
-                'Bottled Diet Mountain Dew®', 'Bottled MTN DEW®', 'Bottled MTN DEW® Baja Blast®',
-                'Bottled Dr Pepper®', 'Bottled Mug® Root Beer', 'Bottled Starry®', 'Aquafina® Bottled Water',
-                'Barqs Root Beer', 'Brisk® Dragon Paradise™ Sparkling Iced Tea', 'Brisk® Mango Fiesta',
-                'Baja Blast®  Pie Chiller', 'Berry Citrus Refresca Freeze', 'Blue Raspberry Freeze',
-                'Beekeeper™ Coffee', 'Beekeeper™ Coffee Horchata'
+                'Pepsi®', 'Diet Pepsi®', 'Pepsi® Zero Sugar', 'MTN DEW®', 'MTN DEW® Baja Blast®',
+                'MTN DEW® Baja Blast™ Zero Sugar', 'MTN DEW® Zero', 'Dr Pepper®', 'Diet Dr Pepper®',
+                'Starry®', 'Mug® Root Beer', 'Cherry Pepsi®', 'Brisk® Mango Fiesta', 'Lipton® Sweet Tea',
+                'Lipton® Unsweetened Iced Tea', 'Tropicana® Original Lemonade', 'Tropicana® Orange Juice',
+                'Aquafina® Bottled Water', 'Milk', 'MTN DEW® Baja Blast® Freeze', 'Wild Strawberry Freeze',
+                'Blue Raspberry Freeze', 'Strawberry Vanilla Cream Soda Freeze', 'Vanilla Cream Soda Freeze',
+                'Confetti Cookie Freeze', 'Mountain Dew Baja Midnight™', 'Dragonfruit Agua Refresca',
+                'Dragonfruit Berry Agua Refresca', 'Mango Peach Agua Refresca', 'Strawberry Passionfruit Agua Refresca',
+                'Premium Hot Coffee', 'Regular Iced Coffee', 'Hot Cinnabon Delights® Coffee',
+                'Iced Cinnabon Delights® Coffee', 'Pineapple Lime Rockstar® Energy Refresca',
+                'Tropical Punch Rockstar® Energy Refresca', 'G2 Gatorade® Fruit Punch'
             ],
-            'Sweets': [
-                'Cinnabon Delights', 'Caramel Apple Empanada', 'Churros',
-                'Cinnamon Twists', 'Cookie Sandwich'
+            'Breakfast': [
+                'Breakfast Crunchwrap Bacon', 'Breakfast Crunchwrap Sausage', 'Breakfast California Crunchwrap',
+                'Breakfast Quesadilla Bacon', 'Breakfast Quesadilla Sausage', 'Breakfast Quesadilla Steak',
+                'Cheesy Toasted Breakfast Burrito Bacon', 'Cheesy Toasted Breakfast Burrito Sausage',
+                'Cheesy Toasted Breakfast Burrito Potato', 'Grande Toasted Breakfast Burrito Bacon',
+                'Grande Toasted Breakfast Burrito Sausage', 'Grande Toasted Breakfast Burrito Steak'
             ],
-            'Sides': [
-                'Chips & Nacho Cheese Sauce', 'Chips & Pico de Gallo',
-                'Black Beans & Rice', 'Cinnamon Twists', 'Pintos N Cheese'
-            ]
+            'Combos & Boxes': [
+                '3 Crunchy Tacos Combo', '3 Crunchy Tacos Supreme Combo', '3 Crunchy Tacos Supreme® Combo',
+                '3 Soft Tacos Combo', '3 Soft Tacos Supreme® Combo', '3 Doritos® Locos Tacos Combo',
+                '3 Doritos® Locos Tacos Supreme Combo', '2 Chicken Chalupas Supreme Combo',
+                'Chicken Quesadilla Combo', 'Crunchwrap Supreme® Combo', 'Nachos BellGrande® Combo',
+                'Mexican Pizza Combo', 'Burrito Supreme® Combo', 'Steak Grilled Cheese Burrito Combo',
+                'Cantina Chicken Burrito Meal', 'Cantina Chicken Quesadilla Meal', 'Cantina Chicken Crispy Taco Meal',
+                'Breakfast Crunchwrap Combo', 'Breakfast Quesadilla Combo', 'Grande Toasted Breakfast Burrito Combo',
+                'Classic Luxe Box', 'Supreme Luxe Box', 'Discovery Luxe Box', 'Build Your Own Luxe Cravings Box',
+                'Taco Party Pack', 'Soft Taco Party Pack', 'Supreme Taco Party Pack',
+                'Supreme Soft Taco Party Pack', 'Variety Taco Party Pack', 'Supreme Variety Taco Party Pack',
+                'Taco & Burrito Cravings Pack', 'Meal for 2', 'Meal for 4', 'Veggie Meal for 2',
+                'Drinks Party Pack'
+            ],
+            'Cravings Value Menu': [
+                'Cheesy Roll Up', 'Spicy Potato Soft Taco', 'Cheesy Bean and Rice Burrito',
+                'Cinnamon Twists', '3 Cheese Chicken Flatbread Melt', 'Classic Stacker'
+            ],
+            'Cantina Chicken Menu': [
+                'Cantina Chicken Bowl', 'Cantina Chicken Burrito', 'Cantina Chicken Quesadilla',
+                'Cantina Chicken Soft Taco', 'Cantina Chicken Crispy Taco', 'Cantina Chicken Burrito Meal',
+                'Cantina Chicken Quesadilla Meal', 'Cantina Chicken Crispy Taco Meal'
+            ],
+            'Veggie Cravings': [
+                'Black Bean Chalupa Supreme', 'Black Bean Chalupa Supreme®', 'Black Bean Crunchwrap Supreme®',
+                'Black Bean Grilled Cheese Burrito - Black Beans', 'Spicy Potato Soft Taco',
+                'Veggie Mexican Pizza', 'Veggie Bowl', 'Veggie Meal for 2'
+            ],
+            'Best Sellers': [
+                'Crunchwrap Supreme®', 'Cheesy Gordita Crunch', 'Beefy 5-Layer Burrito',
+                'Nachos BellGrande®', 'Mexican Pizza', 'Crunchy Taco', 'Soft Taco'
+            ],
+            'New': [],
+            'Online Exclusives': [],
+            'Member Exclusives': [],
+            'Groups': []
         };
 
         const items = [];
         const categoryItems = categoryMap[category] || [];
-        console.log(`Found ${categoryItems.length} items in category map for ${category}`);
         
         categoryItems.forEach(itemName => {
             if (this.menuData.headers.includes(itemName)) {
-                // Use correct image path based on current restaurant
-                const imagePath = this.currentRestaurant === 'kfc' 
-                    ? `KFC/images/${category}/${encodeURIComponent(itemName)}.jpg`
-                    : `images/${category}/${encodeURIComponent(itemName)}.jpg`;
+                const imagePath = `images/${category}/${encodeURIComponent(itemName)}.jpg`;
                 items.push({
                     name: itemName,
                     category: category,
@@ -244,8 +304,7 @@ class MenuManager {
             }
         });
         
-        console.log(`Returning ${items.length} items for category ${category}`);
-
+        console.log(`Found ${items.length} items for Taco Bell category: ${category}`);
         return items;
     }
 
